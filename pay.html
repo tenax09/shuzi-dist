@@ -319,9 +319,8 @@
 
         // 初始化页面
         function initializePage() {
-            // 从URL获取订单ID
-            const urlParams = new URLSearchParams(window.location.search);
-            const orderId = urlParams.get('orderId');
+            // 从URL路径获取订单ID
+            const orderId = getOrderIdFromPath();
             
             if (!orderId) {
                 showError('缺少订单ID参数');
@@ -335,15 +334,27 @@
             fetchOrderData(orderId);
         }
 
+        // 从URL路径获取订单ID
+        function getOrderIdFromPath() {
+            // 获取当前路径，例如: /TEST_1755962974522
+            const path = window.location.pathname;
+            
+            // 移除开头的斜杠，得到订单ID
+            const orderId = path.substring(1);
+            
+            // 如果路径为空或者只是斜杠，返回null
+            if (!orderId || orderId === '/') {
+                return null;
+            }
+            
+            return orderId;
+        }
+
         // 从接口获取订单数据
         async function fetchOrderData(orderId) {
             try {
-                const formData = new FormData();
-                formData.append('orderId', orderId);
-
-                const response = await fetch('/api/data', {
-                    method: 'POST',
-                    body: formData
+                const response = await fetch(`/api/data?orderNo=${encodeURIComponent(orderId)}`, {
+                    method: 'GET'
                 });
 
                 const result = await response.json();
