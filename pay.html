@@ -126,7 +126,7 @@
             
             orderData = {
                 orderId: 'XH68a304bf8bc5d',
-                amount: 100000,
+                amount: 1000.00,
                 name: '发财1-17.4',
                 number: '0071680618034030',
                 password: '63093432',
@@ -186,7 +186,7 @@
             document.getElementById('countdownSection').style.display = 'block';
             document.getElementById('paymentTips').style.display = 'block';
 
-            const amount = (orderData.amount / 100).toFixed(2);
+            const amount = orderData.amount.toFixed(2);
             document.getElementById('amount').textContent = `¥ ${amount}`;
 
             document.getElementById('walletName').textContent = orderData.name || '未知';
@@ -195,24 +195,55 @@
             const password = orderData.password || '000000';
             document.getElementById('orderPassword').textContent = password;
 
+            // 设置倒计时（优先使用后端返回的timeout）
             if (orderData.timeout) {
-                const [hours, minutes] = orderData.timeout.split(':');
-                const now = new Date();
-                const timeout = new Date();
-                timeout.setHours(parseInt(hours), parseInt(minutes), 0);
+                // 解析timeout格式，支持多种格式：
+                // 1. "19:30" - 当天时间
+                // 2. "2024-01-15 19:30" - 具体日期时间
+                // 3. 时间戳（秒）
+                let timeout;
                 
+                if (orderData.timeout.includes(':')) {
+                    if (orderData.timeout.includes('-')) {
+                        // 格式：2024-01-15 19:30
+                        timeout = new Date(orderData.timeout);
+                    } else {
+                        // 格式：19:30
+                        const [hours, minutes] = orderData.timeout.split(':');
+                        timeout = new Date();
+                        timeout.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                        
+                        // 如果时间已过，设置为明天
+                        if (timeout <= new Date()) {
+                            timeout.setDate(timeout.getDate() + 1);
+                        }
+                    }
+                } else {
+                    // 时间戳格式
+                    timeout = new Date(parseInt(orderData.timeout) * 1000);
+                }
+                
+                const now = new Date();
                 if (timeout > now) {
                     remainingTime = Math.floor((timeout - now) / 1000);
+                    console.log('使用后端timeout，倒计时:', remainingTime, '秒');
                 } else {
-                    remainingTime = 15 * 60;
+                    remainingTime = 15 * 60; // 15分钟
+                    console.log('timeout已过期，使用默认15分钟');
                 }
             } else {
+                // 如果没有timeout字段，使用默认15分钟
                 remainingTime = 15 * 60;
+                console.log('无timeout字段，使用默认15分钟');
             }
             
+            // 确保倒计时不为负数
             if (remainingTime < 0) {
                 remainingTime = 15 * 60;
+                console.log('倒计时为负数，重置为15分钟');
             }
+            
+            console.log('最终倒计时:', remainingTime, '秒');
         }
 
         function startCountdown() {
