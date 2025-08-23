@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>数字钱包支付</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #e74c3c;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: #e74c3c;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: normal;
+        }
+
+        .payment-section {
+            padding: 20px;
+        }
+
+        .amount-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px 0;
+        }
+
+        .amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .copy-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px 0;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .countdown {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .countdown-title {
+            color: #856404;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .countdown-time {
+            color: #e74c3c;
+            font-size: 20px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 20px 0;
+        }
+
+        .payment-tips {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .tips-title {
+            color: #c53030;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .tips-content {
+            color: #e53e3e;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .tips-content p {
+            margin-bottom: 8px;
+        }
+
+        .tips-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 400px) {
+            .container {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <a href="#" class="back-btn">←</a>
+            <div class="logo">支</div>
+            <h1>数字钱包支付</h1>
+        </div>
+
+        <!-- 支付信息 -->
+        <div class="payment-section">
+            <!-- 加载状态 -->
+            <div class="loading" id="loadingState">
+                <div class="loading-spinner"></div>
+                <p>正在加载订单信息...</p>
+            </div>
+
+            <!-- 支付金额 -->
+            <div class="amount-row" id="amountRow" style="display: none;">
+                <span class="amount" id="amount">¥ 0.00</span>
+                <button class="copy-btn" onclick="copyText(document.getElementById('amount').textContent)">复制</button>
+            </div>
+
+            <!-- 订单号 -->
+            <div class="info-row" id="orderNoRow" style="display: none;">
+                <span class="info-label">订单号:</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="info-value" id="orderNo">XH68a304bf8bc5d</span>
+                    <button class="copy-btn" onclick="copyText(document.getElementById('orderNo').textContent)">复制</button>
+                </div>
+            </div>
+
+            <!-- 倒计时 -->
+            <div class="countdown" id="countdownRow" style="display: none;">
+                <div class="countdown-title">支付倒计时:</div>
+                <div class="countdown-time" id="countdown">15:00</div>
+            </div>
+
+            <div class="divider" id="divider1" style="display: none;"></div>
+
+            <!-- 收款信息 -->
+            <div class="info-row" id="walletNameRow" style="display: none;">
+                <span class="info-label">收款人姓名</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="info-value" id="walletName">加载中...</span>
+                    <button class="copy-btn" onclick="copyText(document.getElementById('walletNumber').textContent)">复制</button>
+                </div>
+            </div>
+
+            <div class="info-row" id="walletNumberRow" style="display: none;">
+                <span class="info-label">收款人账号</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="info-value" id="walletNumber">加载中...</span>
+                    <button class="copy-btn" onclick="copyText(document.getElementById('walletNumber').textContent)">复制</button>
+                </div>
+            </div>
+
+            <div class="info-row" id="orderPasswordRow" style="display: none;">
+                <span class="info-label">订单口令</span>
+                <span class="info-value" id="orderPassword">加载中...</span>
+                <button class="copy-btn" onclick="copyText(document.getElementById('orderPassword').textContent)">复制</button>
+            </div>
+
+            <div class="divider" id="divider2" style="display: none;"></div>
+
+            <!-- 支付提示 -->
+            <div class="payment-tips" id="paymentTips" style="display: none;">
+                <div class="tips-title">支付提示:</div>
+                <div class="tips-content">
+                    <p>请使用数字钱包进行支付，支付成功后请等待系统确认</p>
+                    <p>请勿超时支付，超时支付不退不补</p>
+                    <p>禁止修改金额，修改金额可能导致支付失败</p>
+                    <p>收款信息仅本次有效</p>
+                    <p>重复支付、更改金额概不负责</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成功消息 -->
+        <div class="success-message" id="successMessage">
+            <h3>✅ 支付成功！</h3>
+            <p>您的订单已支付成功，请等待系统确认。</p>
+        </div>
+
+        <!-- 错误消息 -->
+        <div class="error-message" id="errorMessage">
+            <h3>❌ 支付失败</h3>
+            <p id="errorText">请检查支付信息后重试。</p>
+        </div>
+    </div>
+
+    <script>
+        let countdownInterval;
+        let remainingTime = 15 * 60; // 15分钟倒计时
+        let orderData = null;
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        // 初始化页面
+        function initializePage() {
+            // 从URL获取订单ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('orderId');
+            
+            if (!orderId) {
+                showError('缺少订单ID参数');
+                return;
+            }
+
+            // 设置订单号显示
+            document.getElementById('orderNo').textContent = orderId;
+            
+            // 获取订单数据
+            fetchOrderData(orderId);
+        }
+
+        // 从接口获取订单数据
+        async function fetchOrderData(orderId) {
+            try {
+                const formData = new FormData();
+                formData.append('orderId', orderId);
+
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.code == 0) {
+                    orderData = result.data;
+                    updatePageData();
+                    startCountdown();
+                } else {
+                    showError(result.msg || '获取订单数据失败');
+                }
+            } catch (error) {
+                console.error('获取订单数据失败:', error);
+                showError('网络错误，请重试');
+            }
+        }
+
+        // 更新页面数据
+        function updatePageData() {
+            if (!orderData) return;
+
+            // 隐藏加载状态
+            document.getElementById('loadingState').style.display = 'none';
+
+            // 显示所有支付信息区域
+            document.getElementById('amountRow').style.display = 'flex';
+            document.getElementById('orderNoRow').style.display = 'flex';
+            document.getElementById('countdownRow').style.display = 'block';
+            document.getElementById('divider1').style.display = 'block';
+            document.getElementById('walletNameRow').style.display = 'flex';
+            document.getElementById('walletNumberRow').style.display = 'flex';
+            document.getElementById('orderPasswordRow').style.display = 'flex';
+            document.getElementById('divider2').style.display = 'block';
+            document.getElementById('paymentTips').style.display = 'block';
+
+            // 更新支付金额
+            const amount = (orderData.amount / 100).toFixed(2); // 转换为元
+            document.getElementById('amount').textContent = `¥ ${amount}`;
+
+            // 更新钱包信息
+            document.getElementById('walletName').textContent = orderData.name || '未知';
+            document.getElementById('walletNumber').textContent = orderData.number || '未知';
+
+            // 使用后端返回的订单口令
+            const password = orderData.password || '000000';
+            document.getElementById('orderPassword').textContent = password;
+
+            // 设置倒计时（从接口返回的timeout计算）
+            if (orderData.timeout) {
+                const [hours, minutes] = orderData.timeout.split(':');
+                const now = new Date();
+                const timeout = new Date();
+                timeout.setHours(parseInt(hours), parseInt(minutes), 0);
+                
+                if (timeout > now) {
+                    remainingTime = Math.floor((timeout - now) / 1000);
+                } else {
+                    remainingTime = 0;
+                }
+            } else {
+                // 如果没有timeout字段，使用默认15分钟
+                remainingTime = 15 * 60;
+            }
+        }
+
+        // 开始倒计时
+        function startCountdown() {
+            countdownInterval = setInterval(function() {
+                if (remainingTime > 0) {
+                    remainingTime--;
+                    updateCountdownDisplay();
+                } else {
+                    clearInterval(countdownInterval);
+                    showError('支付超时，请重新下单');
+                }
+            }, 1000);
+        }
+
+        // 更新倒计时显示
+        function updateCountdownDisplay() {
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            document.getElementById('countdown').textContent = 
+                String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        }
+
+        // 复制文本到剪贴板
+        function copyText(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopySuccess();
+                }).catch(function() {
+                    fallbackCopyText(text);
+                });
+            } else {
+                fallbackCopyText(text);
+            }
+        }
+
+        // 备用复制方法
+        function fallbackCopyText(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showCopySuccess();
+            } catch (err) {
+                console.error('复制失败:', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // 显示复制成功提示
+        function showCopySuccess() {
+            // 这里可以添加一个简单的提示
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '已复制';
+            btn.style.background = '#27ae60';
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '#3498db';
+            }, 1000);
+        }
+
+        // 显示成功消息
+        function showSuccess() {
+            document.getElementById('successMessage').style.display = 'block';
+            clearInterval(countdownInterval);
+        }
+
+        // 显示错误消息
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').style.display = 'block';
+        }
+
+        // 页面卸载时清理定时器
+        window.addEventListener('beforeunload', function() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+        });
+
+        // 模拟支付成功（用于测试）
+        function simulatePaymentSuccess() {
+            setTimeout(() => {
+                showSuccess();
+            }, 3000);
+        }
+
+        // 可以调用 simulatePaymentSuccess() 来测试支付成功效果
+    </script>
+</body>
+</html>
