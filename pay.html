@@ -130,7 +130,7 @@
                 name: '发财1-17.4',
                 number: '0071680618034030',
                 password: '63093432',
-                timeout: '19:30'
+                seconds: 900
             };
             
             console.log('模拟数据已设置:', orderData);
@@ -195,46 +195,14 @@
             const password = orderData.password || '000000';
             document.getElementById('orderPassword').textContent = password;
 
-            // 设置倒计时（优先使用后端返回的timeout）
-            if (orderData.timeout) {
-                // 解析timeout格式，支持多种格式：
-                // 1. "19:30" - 当天时间
-                // 2. "2024-01-15 19:30" - 具体日期时间
-                // 3. 时间戳（秒）
-                let timeout;
-                
-                if (orderData.timeout.includes(':')) {
-                    if (orderData.timeout.includes('-')) {
-                        // 格式：2024-01-15 19:30
-                        timeout = new Date(orderData.timeout);
-                    } else {
-                        // 格式：19:30
-                        const [hours, minutes] = orderData.timeout.split(':');
-                        timeout = new Date();
-                        timeout.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                        
-                        // 如果时间已过，设置为明天
-                        if (timeout <= new Date()) {
-                            timeout.setDate(timeout.getDate() + 1);
-                        }
-                    }
-                } else {
-                    // 时间戳格式
-                    timeout = new Date(parseInt(orderData.timeout) * 1000);
-                }
-                
-                const now = new Date();
-                if (timeout > now) {
-                    remainingTime = Math.floor((timeout - now) / 1000);
-                    console.log('使用后端timeout，倒计时:', remainingTime, '秒');
-                } else {
-                    remainingTime = 15 * 60; // 15分钟
-                    console.log('timeout已过期，使用默认15分钟');
-                }
+            // 设置倒计时（使用后端返回的seconds字段）
+            if (orderData.seconds && orderData.seconds > 0) {
+                remainingTime = orderData.seconds;
+                console.log('使用后端seconds字段，倒计时:', remainingTime, '秒');
             } else {
-                // 如果没有timeout字段，使用默认15分钟
+                // 如果没有seconds字段，使用默认15分钟
                 remainingTime = 15 * 60;
-                console.log('无timeout字段，使用默认15分钟');
+                console.log('无seconds字段，使用默认15分钟');
             }
             
             // 确保倒计时不为负数
