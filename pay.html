@@ -151,7 +151,7 @@
 
         async function fetchOrderData(orderId) {
             try {
-                const response = await fetch(`/api/data?orderNo=${encodeURIComponent(orderId)}`, {
+                const response = await fetch(`/api/shuziqianbao/data?orderNo=${encodeURIComponent(orderId)}`, {
                     method: 'GET'
                 });
 
